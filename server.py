@@ -3,34 +3,56 @@ Import the relevant libraries and functions
 '''
 
 from flask import Flask, request, render_template
-from SentimentAnalysis.sentiment_analysis import sentiment_analyzer
+from EmotionDetection.emotion_detection import emotion_detector
 
-# pylint: disable=missing-function-docstring
-def my_undocumented_function():
-    pass
+app = Flask("Emotion Detector")
 
-app = Flask("Sentiment Analyzer")
+@app.route("/emotionDetector")
+def emo_detector():
+    """
+    Analyzes the input text provided via request parameters for emotional content.
 
-@app.route("/sentimentAnalyzer")
-def sent_analyzer():
+    Retrieves the string payload from the query parameter 'textToAnalyze',
+    processes it through the emotion detector library, and formats a human-readable 
+    summary of the emotional breakdown alongside the identified dominant emotion.
+
+    Returns:
+        str: A formatted sentence detailing all emotion scores and the dominant emotion.
+    """
     # Retrieve the text to analyze from the request arguments
     text_to_analyze = request.args.get('textToAnalyze')
-    # Pass the text to the sentiment_analyzer function and store the response
-    response = sentiment_analyzer(text_to_analyze)
-    # Extract the label and score from the response
-    label = response['label']
-    score = response['score']
+    # Pass the text to the emotion_detector function and store the response
+    response = emotion_detector(text_to_analyze)
 
-    # Check if the label is None, indicating an error or invalid input
-    if label is None:
-        print("Invalid input! Try again.")
+    anger_score = response['anger']
+    disgust_score = response['disgust']
+    fear_score = response['fear']
+    joy_score = response['joy']
+    sadness_score = response['sadness']
+    dominant_emotion = response['dominant_emotion']
+
+    if dominant_emotion is None:
+        print("Invalid text! Please try again!.")
+
     else:
-        # Return a formatted string with the sentiment label and score
-        print(f"The given text identified as {label.split('_')[1]} with a score of {score}")
-
+        print(
+            f"For the given statement, the system response is 'anger': {anger_score},"
+            f" 'disgust': {disgust_score}, 'fear': {fear_score}, 'joy':"
+            f" {joy_score} and 'sadness': {sadness_score}. The dominant emotion is"
+            f' {dominant_emotion}.'
+        )
 
 @app.route("/")
 def render_index_page():
+    """
+    Renders the main index page of the application interface.
+
+    This function triggers on the root web path URL ('/') and serving the 
+    front-end interface 'index.html' template to the user's browser.
+
+    Returns:
+        str: The rendered HTML content of the application index page.
+    """
     return render_template('index.html')
 
 if __name__ == "__main__":
